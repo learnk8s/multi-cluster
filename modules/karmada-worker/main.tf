@@ -51,6 +51,7 @@ resource "kubernetes_namespace" "istio" {
     name = local.istio_namespace
 
     labels = {
+      "istio-injection"           = "disabled"
       "topology.istio.io/network" = var.network_name
     }
   }

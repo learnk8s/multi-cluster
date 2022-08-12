@@ -31,15 +31,26 @@ terraform -chdir=02-karmada apply -auto-approve
 terraform -chdir=03-workers init
 terraform -chdir=03-workers apply -auto-approve
 
-# Connecting the clusters with Istio
+# Discover other Istio installations
 terraform -chdir=04-discovery init
 terraform -chdir=04-discovery apply -auto-approve
 
+# Install Kiali
+terraform -chdir=05-dashboards init
+terraform -chdir=05-dashboards apply -auto-approve
+
 # Clean up
+terraform -chdir=05-dashboards destroy -auto-approve
 terraform -chdir=04-discovery destroy -auto-approve
 terraform -chdir=03-workers destroy -auto-approve
 terraform -chdir=02-karmada destroy -auto-approve
 terraform -chdir=01-clusters destroy -auto-approve
+```
+
+## Accessing the Kiali dashboard
+
+```bash
+kubectl --kubeconfig=kubeconfig-sg port-forward svc/kiali 8080:20001 -n istio-system
 ```
 
 ## Testing the code
@@ -85,3 +96,4 @@ $ make -f ../istio/tools/certs/Makefile.selfsigned.mk cluster3-cacerts
 ## Notes
 
 - Sometimes, the EastWest gateway cannot be created because of a validation admission webhook. Since this is sporadic, I think it's related to a race condition. [More on this here.](https://github.com/istio/istio/issues/39205)
+- This Terraform files use the `null_resource` and `kubectl`. You should have `kubectl` installed locally.
