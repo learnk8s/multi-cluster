@@ -1,0 +1,11 @@
+istio
+karmada
+terraform.tfstate
+terraform.tfstate.backup
+karmada-config
+kube-config-*
+kubeconfig-*
+node_ip.txt
+.terraform.lock.hcl
+terraform.tfstate.*
+.terraform
