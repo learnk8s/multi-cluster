@@ -9,3 +9,4 @@ node_ip.txt
 .terraform.lock.hcl
 terraform.tfstate.*
 .terraform
+.terraform.tfstate.lock.info

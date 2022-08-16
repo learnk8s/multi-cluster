@@ -38,6 +38,16 @@ resource "helm_release" "prometheus" {
   name      = "prometheus"
   chart     = "https://github.com/prometheus-community/helm-charts/releases/download/prometheus-15.11.0/prometheus-15.11.0.tgz"
   namespace = local.istio_namespace
+
+  set {
+    name  = "server.global.scrape_interval"
+    value = "10s"
+  }
+
+  set {
+    name  = "server.global.evaluation_interval"
+    value = "10s"
+  }
 }
 
 # Kiali expects the server to be available on http://prometheus.istio-system:9090

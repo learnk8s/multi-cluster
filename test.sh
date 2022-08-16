@@ -57,40 +57,31 @@ kind: Service
 metadata:
   name: hello
 spec:
+  type: NodePort
   ports:
   - port: 5000
     targetPort: 9898
+    nodePort: 32000
   selector:
     app: hello
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: sleep
+  annotations:
+    kubernetes.io/ingress.class: istio
+  name: hello
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: sleep
-  template:
-    metadata:
-      labels:
-        app: sleep
-    spec:
-      terminationGracePeriodSeconds: 0
-      containers:
-      - name: sleep
-        image: curlimages/curl
-        command: ["/bin/sleep", "3650d"]
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-        - mountPath: /etc/sleep/tls
-          name: secret-volume
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: sleep-secret
-          optional: true
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hello
+            port:
+              number: 5000
 EOF
 
 cat <<EOF | kubectl --kubeconfig=karmada-config apply -f -
@@ -103,9 +94,9 @@ spec:
     - apiVersion: apps/v1
       kind: Deployment
       name: hello
-    - apiVersion: apps/v1
-      kind: Deployment
-      name: sleep
+    - apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      name: hello
     - apiVersion: v1
       kind: Service
       name: hello
@@ -135,16 +126,19 @@ spec:
 EOF
 
 # Wait for sleep to be available
-sleep 60
+# sleep 60
 
-for i in {1..30}; do
-  kubectl exec --kubeconfig=kubeconfig-us -c sleep \
-    "$(kubectl get pod --kubeconfig=kubeconfig-us -l \
-      app=sleep -o jsonpath='{.items[0].metadata.name}')" \
-    -- curl -sS hello:5000/env | grep REGION
-done
+# REGIONS=(sg us eu)
+# for REGION in "${REGIONS[@]}"; do
+#   for i in {1..30}; do
+#     kubectl exec --kubeconfig="kubeconfig-$REGION" -c sleep \
+#       "$(kubectl get pod --kubeconfig="kubeconfig-$REGION" -l \
+#         app=sleep -o jsonpath='{.items[0].metadata.name}')" \
+#       -- sh -c "for i in $(seq 1 10); do wget -qO- hello:5000/env | grep REGION; done"
+#   done
+# done
 
-kubectl get clusters --kubeconfig=karmada-config
-kubectl get pods --kubeconfig=kubeconfig-sg
-kubectl get pods --kubeconfig=kubeconfig-eu
-kubectl get pods --kubeconfig=kubeconfig-us
+LB_AP=$(kubectl --kubeconfig=kubeconfig-sg get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
+LB_US=$(kubectl --kubeconfig=kubeconfig-us get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
+LB_EU=$(kubectl --kubeconfig=kubeconfig-eu get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
+echo "node world-map/index.js '{\"ap\":\"http://$LB_AP/env\",\"us\":\"http://$LB_US/env\",\"eu\":\"http://$LB_EU/env\"}'"

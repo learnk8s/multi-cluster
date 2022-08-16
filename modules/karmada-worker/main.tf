@@ -51,7 +51,6 @@ resource "kubernetes_namespace" "istio" {
     name = local.istio_namespace
 
     labels = {
-      "istio-injection"           = "disabled"
       "topology.istio.io/network" = var.network_name
     }
   }
@@ -97,8 +96,15 @@ resource "helm_release" "istiod" {
   }
 }
 
-resource "helm_release" "eastwest_gateway" {
+# Wait for the mutating webhook to be available
+resource "time_sleep" "wait_for_webhook" {
   depends_on = [helm_release.istiod]
+
+  create_duration = "30s"
+}
+
+resource "helm_release" "eastwest_gateway" {
+  depends_on = [time_sleep.wait_for_webhook]
   name       = "eastwest-gateway"
   chart      = "https://istio-release.storage.googleapis.com/charts/gateway-1.14.1.tgz"
   # chart      = "istio/gateway"
@@ -177,6 +183,29 @@ resource "helm_release" "eastwest_gateway" {
   }
 }
 
+resource "helm_release" "ingress_gateway" {
+  depends_on = [time_sleep.wait_for_webhook]
+  name       = "ingress-gateway"
+  chart      = "https://istio-release.storage.googleapis.com/charts/gateway-1.14.1.tgz"
+  # chart      = "istio/gateway"
+  namespace = local.istio_namespace
+
+  set {
+    name  = "labels.istio"
+    value = "ingressgateway"
+  }
+
+  set {
+    name  = "labels.app"
+    value = "istio-ingressgateway"
+  }
+
+  set {
+    name  = "labels.topology\\.istio\\.io/network"
+    value = var.network_name
+  }
+}
+
 resource "helm_release" "karmada" {
   name             = "karmada"
   chart            = "https://github.com/karmada-io/karmada/releases/download/v1.2.0/karmada-chart-v1.2.0.tgz"
@@ -243,5 +272,5 @@ resource "null_resource" "expose" {
     command = "kubectl delete --kubeconfig=${self.triggers.kubeconfig_path} -n ${self.triggers.istio_namespace} --ignore-not-found=true -f ${self.triggers.current_path}/expose.yaml"
     when    = destroy
   }
-  depends_on = [helm_release.eastwest_gateway]
+  depends_on = [helm_release.eastwest_gateway, helm_release.ingress_gateway]
 }
