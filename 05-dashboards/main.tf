@@ -1,12 +1,12 @@
-module "worker_sg" {
+module "worker_ap" {
   source = "../modules/dashboard"
 
-  cluster_name    = "sg"
-  kubeconfig_path = abspath("../kubeconfig-sg")
+  cluster_name    = "ap"
+  kubeconfig_path = abspath("../kubeconfig-ap")
 }
 
-output "kiali_token_sg" {
-  value = module.worker_sg.token
+output "kiali_token_ap" {
+  value = module.worker_ap.token
 }
 
 module "worker_us" {

@@ -10,16 +10,16 @@ resource "local_file" "kubeconfig_cluster_manager" {
   content  = module.cluster_manager.kubeconfig
 }
 
-module "sg" {
+module "ap" {
   source = "../modules/cluster"
 
-  name   = "sg"
+  name   = "ap"
   region = "ap-south"
 }
 
-resource "local_file" "kubeconfig_sg" {
-  filename = "../kubeconfig-sg"
-  content  = module.sg.kubeconfig
+resource "local_file" "kubeconfig_ap" {
+  filename = "../kubeconfig-ap"
+  content  = module.ap.kubeconfig
 }
 
 module "us" {

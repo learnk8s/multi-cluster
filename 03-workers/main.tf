@@ -1,8 +1,8 @@
-module "worker_sg" {
+module "worker_ap" {
   source = "../modules/karmada-worker"
 
-  cluster_name    = "sg"
-  kubeconfig_path = abspath("../kubeconfig-sg")
+  cluster_name    = "ap"
+  kubeconfig_path = abspath("../kubeconfig-ap")
   certs = {
     "ca-cert.pem"    = file("../certs/cluster1/ca-cert.pem")
     "ca-key.pem"     = file("../certs/cluster1/ca-key.pem")

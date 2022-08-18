@@ -1,6 +1,6 @@
 #! /bin/bash
 
-cat <<EOF | kubectl --kubeconfig=kubeconfig-sg apply -f -
+cat <<EOF | kubectl --kubeconfig=kubeconfig-ap apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -104,7 +104,7 @@ spec:
     clusterAffinity:
       clusterNames:
         - eu
-        - sg
+        - ap
         - us
     replicaScheduling:
       replicaDivisionPreference: Weighted
@@ -117,7 +117,7 @@ spec:
             weight: 1
           - targetCluster:
               clusterNames:
-                - sg
+                - ap
             weight: 1
           - targetCluster:
               clusterNames:
@@ -128,7 +128,7 @@ EOF
 # Wait for sleep to be available
 # sleep 60
 
-# REGIONS=(sg us eu)
+# REGIONS=(ap us eu)
 # for REGION in "${REGIONS[@]}"; do
 #   for i in {1..30}; do
 #     kubectl exec --kubeconfig="kubeconfig-$REGION" -c sleep \
@@ -138,7 +138,7 @@ EOF
 #   done
 # done
 
-LB_AP=$(kubectl --kubeconfig=kubeconfig-sg get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
+LB_AP=$(kubectl --kubeconfig=kubeconfig-ap get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
 LB_US=$(kubectl --kubeconfig=kubeconfig-us get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
 LB_EU=$(kubectl --kubeconfig=kubeconfig-eu get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
 echo "node world-map/index.js '{\"ap\":\"http://$LB_AP/env\",\"us\":\"http://$LB_US/env\",\"eu\":\"http://$LB_EU/env\"}'"

@@ -1,8 +1,8 @@
-module "worker_sg" {
+module "worker_ap" {
   source = "../modules/discovery"
 
-  cluster_name    = "sg"
-  kubeconfig_path = abspath("../kubeconfig-sg")
+  cluster_name    = "ap"
+  kubeconfig_path = abspath("../kubeconfig-ap")
   cluster_discovery = {
     "us" = { cluster_name = "us", kubeconfig_path = abspath("../kubeconfig-us") }
     "eu" = { cluster_name = "eu", kubeconfig_path = abspath("../kubeconfig-eu") }
@@ -15,7 +15,7 @@ module "worker_us" {
   cluster_name    = "us"
   kubeconfig_path = abspath("../kubeconfig-us")
   cluster_discovery = {
-    "sg" = { cluster_name = "sg", kubeconfig_path = abspath("../kubeconfig-sg") }
+    "ap" = { cluster_name = "ap", kubeconfig_path = abspath("../kubeconfig-ap") }
     "eu" = { cluster_name = "eu", kubeconfig_path = abspath("../kubeconfig-eu") }
   }
 }
@@ -26,7 +26,7 @@ module "worker_eu" {
   cluster_name    = "eu"
   kubeconfig_path = abspath("../kubeconfig-eu")
   cluster_discovery = {
-    "sg" = { cluster_name = "sg", kubeconfig_path = abspath("../kubeconfig-sg") }
+    "ap" = { cluster_name = "ap", kubeconfig_path = abspath("../kubeconfig-ap") }
     "us" = { cluster_name = "us", kubeconfig_path = abspath("../kubeconfig-us") }
   }
 }

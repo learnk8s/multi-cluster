@@ -50,7 +50,7 @@ terraform -chdir=01-clusters destroy -auto-approve
 ## Accessing the Kiali dashboard
 
 ```bash
-kubectl --kubeconfig=kubeconfig-sg port-forward svc/kiali 8080:20001 -n istio-system
+kubectl --kubeconfig=kubeconfig-ap port-forward svc/kiali 8081:20001 -n istio-system
 ```
 
 ## Testing the code
@@ -58,6 +58,8 @@ kubectl --kubeconfig=kubeconfig-sg port-forward svc/kiali 8080:20001 -n istio-sy
 ```bash
 ./test.sh
 ```
+
+The script will print the command that you can use to launch the world map dashboard.
 
 ## Creating new certs
 

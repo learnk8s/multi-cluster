@@ -94,7 +94,7 @@ function render(state, previousState) {
         locationUs.setAttribute("checked", true);
         locationAp.removeAttribute("checked");
         break;
-      case "sg":
+      case "ap":
         locationEu.removeAttribute("checked");
         locationUs.removeAttribute("checked");
         locationAp.setAttribute("checked", true);
