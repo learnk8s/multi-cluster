@@ -1,6 +1,8 @@
-# Multi cluster setup
+# Multi-cluster, multi-region, multi-cloud Kubernetes
 
 This project helps you bootstrap and orchestrate several Kubernetes clusters across different regions and clouds from a single control plane.
+
+![Scaling Kubernetes clusters across regions and clouds](assets/preview.gif)
 
 The setup helps study:
 
@@ -59,7 +61,7 @@ kubectl --kubeconfig=kubeconfig-ap port-forward svc/kiali 8081:20001 -n istio-sy
 ./test.sh
 ```
 
-The script will print the command that you can use to launch the world map dashboard.
+The script will print the command you can use to launch the world map dashboard.
 
 ## Creating new certs
 
@@ -84,10 +86,10 @@ The command generated the following files:
 
 - `root-cert.pem`: the generated root certificate.
 - `root-key.pem`: the generated root key.
-- `root-ca.conf`: the configuration for openssl to generate the root certificate.
+- `root-ca.conf`: the configuration for OpenSSL to generate the root certificate.
 - `root-cert.csr`: the generated CSR for the root certificate.
 
-For each cluster, generate an intermediate certificate and key for the Istio Certificate Autorhity:
+For each cluster, generate an intermediate certificate and key for the Istio Certificate Authority:
 
 ```bash
 $ make -f ../istio/tools/certs/Makefile.selfsigned.mk cluster1-cacerts
