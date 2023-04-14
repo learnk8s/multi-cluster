@@ -50,34 +50,6 @@ resource "helm_release" "prometheus" {
   }
 }
 
-# Kiali expects the server to be available on http://prometheus.istio-system:9090
-# The value should be customizable in the Kiali ConfigMap, but the Helm chart does not expose it.
-# `external_services`: https://kiali.io/docs/configuration/kialis.kiali.io/
-# As a workaround, create the service.
-resource "kubernetes_service" "prometheus" {
-  metadata {
-    name      = "prometheus"
-    namespace = local.istio_namespace
-  }
-  spec {
-    selector = {
-      app       = "prometheus"
-      component = "server"
-      release   = "prometheus"
-    }
-    session_affinity = "ClientIP"
-    port {
-      port        = 9090
-      target_port = 9090
-    }
-
-    type = "ClusterIP"
-  }
-  depends_on = [
-    helm_release.prometheus
-  ]
-}
-
 resource "helm_release" "kiali_server" {
   name      = "kiali-server"
   chart     = "https://kiali.org/helm-charts/kiali-server-1.54.0.tgz"
@@ -90,25 +62,19 @@ resource "helm_release" "kiali_server" {
     name  = "istio.root_namespace"
     value = local.istio_namespace
   }
-}
 
-data "kubernetes_service_account" "this" {
-  metadata {
-    name      = "kiali"
-    namespace = local.istio_namespace
+  set {
+    name  = "auth.strategy"
+    value = "anonymous"
   }
-  depends_on = [
-    helm_release.kiali_server
-  ]
-}
 
-data "kubernetes_secret" "this" {
-  metadata {
-    name      = data.kubernetes_service_account.this.default_secret_name
-    namespace = local.istio_namespace
+  set {
+    name  = "external_services.custom_dashboards.prometheus.url"
+    value = "http://prometheus-server/"
   }
-}
 
-output "token" {
-  value = nonsensitive(data.kubernetes_secret.this.data)["token"]
+  set {
+    name  = "external_services.prometheus.url"
+    value = "http://prometheus-server"
+  }
 }

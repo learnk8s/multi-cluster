@@ -68,7 +68,7 @@ resource "kubernetes_secret" "cacerts" {
 resource "helm_release" "istio_base" {
   depends_on = [kubernetes_secret.cacerts, kubernetes_namespace.istio]
   name       = "istio-base"
-  chart      = "https://istio-release.storage.googleapis.com/charts/base-1.14.1.tgz"
+  chart      = "https://istio-release.storage.googleapis.com/charts/base-1.17.1.tgz"
   # chart      = "istio/base"
   namespace = local.istio_namespace
 }
@@ -76,7 +76,7 @@ resource "helm_release" "istio_base" {
 resource "helm_release" "istiod" {
   depends_on = [kubernetes_secret.cacerts, kubernetes_namespace.istio]
   name       = "istiod"
-  chart      = "https://istio-release.storage.googleapis.com/charts/istiod-1.14.1.tgz"
+  chart      = "https://istio-release.storage.googleapis.com/charts/istiod-1.17.1.tgz"
   # chart      = "istio/istiod"
   namespace = local.istio_namespace
 
@@ -106,7 +106,7 @@ resource "time_sleep" "wait_for_webhook" {
 resource "helm_release" "eastwest_gateway" {
   depends_on = [time_sleep.wait_for_webhook]
   name       = "eastwest-gateway"
-  chart      = "https://istio-release.storage.googleapis.com/charts/gateway-1.14.1.tgz"
+  chart      = "https://istio-release.storage.googleapis.com/charts/gateway-1.17.1.tgz"
   # chart      = "istio/gateway"
   namespace = local.istio_namespace
 
@@ -186,7 +186,7 @@ resource "helm_release" "eastwest_gateway" {
 resource "helm_release" "ingress_gateway" {
   depends_on = [time_sleep.wait_for_webhook]
   name       = "ingress-gateway"
-  chart      = "https://istio-release.storage.googleapis.com/charts/gateway-1.14.1.tgz"
+  chart      = "https://istio-release.storage.googleapis.com/charts/gateway-1.17.1.tgz"
   # chart      = "istio/gateway"
   namespace = local.istio_namespace
 
@@ -208,8 +208,8 @@ resource "helm_release" "ingress_gateway" {
 
 resource "helm_release" "karmada" {
   name             = "karmada"
-  chart            = "https://github.com/karmada-io/karmada/releases/download/v1.2.0/karmada-chart-v1.2.0.tgz"
-  namespace        = "karmada"
+  chart            = "https://github.com/karmada-io/karmada/releases/download/v1.5.0/karmada-chart-v1.5.0.tgz"
+  namespace        = "karmada-system"
   create_namespace = true
 
   set {

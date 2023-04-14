@@ -82,6 +82,35 @@ spec:
             name: hello
             port:
               number: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sleep
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sleep
+  template:
+    metadata:
+      labels:
+        app: sleep
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: sleep
+        image: curlimages/curl
+        command: ["/bin/sleep", "3650d"]
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /etc/sleep/tls
+          name: secret-volume
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: sleep-secret
+          optional: true
 EOF
 
 cat <<EOF | kubectl --kubeconfig=karmada-config apply -f -
@@ -94,6 +123,9 @@ spec:
     - apiVersion: apps/v1
       kind: Deployment
       name: hello
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: sleep
     - apiVersion: networking.k8s.io/v1
       kind: Ingress
       name: hello
@@ -108,7 +140,7 @@ spec:
         - us
     replicaScheduling:
       replicaDivisionPreference: Weighted
-      replicaSchedulingType: Divided
+      replicaSchedulingType: Duplicated
       weightPreference:
         staticWeightList:
           - targetCluster:
@@ -128,15 +160,15 @@ EOF
 # Wait for sleep to be available
 # sleep 60
 
-# REGIONS=(ap us eu)
-# for REGION in "${REGIONS[@]}"; do
-#   for i in {1..30}; do
-#     kubectl exec --kubeconfig="kubeconfig-$REGION" -c sleep \
-#       "$(kubectl get pod --kubeconfig="kubeconfig-$REGION" -l \
-#         app=sleep -o jsonpath='{.items[0].metadata.name}')" \
-#       -- sh -c "for i in $(seq 1 10); do wget -qO- hello:5000/env | grep REGION; done"
-#   done
-# done
+REGIONS=(ap us eu)
+for REGION in "${REGIONS[@]}"; do
+  for i in {1..30}; do
+    kubectl exec --kubeconfig="kubeconfig-$REGION" -c sleep \
+      "$(kubectl get pod --kubeconfig="kubeconfig-$REGION" -l \
+        app=sleep -o jsonpath='{.items[0].metadata.name}')" \
+      -- sh -c "wget -qO- hello:5000/env | grep REGION"
+  done
+done
 
 LB_AP=$(kubectl --kubeconfig=kubeconfig-ap get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")
 LB_US=$(kubectl --kubeconfig=kubeconfig-us get service -n istio-system -l app=istio-ingressgateway -o jsonpath="{.items[0].status.loadBalancer.ingress[0].ip}")

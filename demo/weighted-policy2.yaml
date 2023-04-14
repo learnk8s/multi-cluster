@@ -1,0 +1,38 @@
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: weighted-propagation
+spec:
+  resourceSelectors:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: hello
+    - apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      name: hello
+    - apiVersion: v1
+      kind: Service
+      name: hello
+  placement:
+    clusterAffinity:
+      clusterNames:
+        - eu
+        - ap
+        - us
+    replicaScheduling:
+      replicaDivisionPreference: Weighted
+      replicaSchedulingType: Divided
+      weightPreference:
+        staticWeightList:
+          - targetCluster:
+              clusterNames:
+                - us
+            weight: 1
+          - targetCluster:
+              clusterNames:
+                - ap
+            weight: 1
+          - targetCluster:
+              clusterNames:
+                - eu
+            weight: 1
